@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
+import fs from 'fs';
 import { env } from '../infrastructure/config/env';
 import { logger } from '../infrastructure/logger/logger';
 import { prisma } from '../infrastructure/database/prisma';
@@ -14,7 +15,11 @@ app.use(cors());
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(express.json());
 
-app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
+const uploadsDir = path.join(__dirname, '../../uploads');
+const avatarsDir = path.join(uploadsDir, 'avatars');
+fs.mkdirSync(avatarsDir, { recursive: true });
+
+app.use('/uploads', express.static(uploadsDir));
 
 app.get('/api/v1/health', (_req, res) => {
   res.json({ data: { status: 'ok', timestamp: new Date().toISOString() } });
