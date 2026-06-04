@@ -24,7 +24,7 @@ export class RegisterUserUseCase {
 
     const hashedPassword = await this.hashService.hash(dto.password);
 
-    const user = new User(uuid(), dto.name, dto.email, hashedPassword, UserRole.ATHLETE, new Date(), new Date());
+    const user = new User(uuid(), dto.name, dto.email, hashedPassword, UserRole.ATHLETE, new Date(), new Date(), null);
     const saved = await this.userRepo.save(user);
     const token = this.jwtService.sign({ id: saved.id, email: saved.email, role: saved.role });
 

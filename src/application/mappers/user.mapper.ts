@@ -9,6 +9,7 @@ export class UserMapper {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatarUrl: user.avatarUrl ?? null,
       },
       token,
     };
@@ -20,6 +21,7 @@ export class UserMapper {
       name: user.name,
       email: user.email,
       role: user.role,
+      avatarUrl: user.avatarUrl ?? null,
     };
   }
 }

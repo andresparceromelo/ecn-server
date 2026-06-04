@@ -3,6 +3,7 @@ export interface AuthUserDTO {
   name: string;
   email: string;
   role: string;
+  avatarUrl: string | null;
 }
 
 export interface AuthResponseDTO {

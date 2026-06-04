@@ -9,5 +9,6 @@ export class User {
     public role: UserRole,
     public readonly createdAt: Date,
     public updatedAt: Date,
+    public avatarUrl?: string | null,
   ) {}
 }

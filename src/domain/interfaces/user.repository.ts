@@ -11,4 +11,5 @@ export interface UserRepository {
   save(user: User): Promise<User>;
   countAll(): Promise<number>;
   countByRole(): Promise<RoleCount[]>;
+  updateAvatar(userId: string, avatarUrl: string): Promise<User>;
 }

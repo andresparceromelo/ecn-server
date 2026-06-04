@@ -3,6 +3,7 @@ import { GetProfileUseCase } from '../../application/use-cases/athletes/get-prof
 import { CreateProfileUseCase } from '../../application/use-cases/athletes/create-profile.use-case';
 import { GeneratePlanUseCase } from '../../application/use-cases/athletes/generate-plan.use-case';
 import { GetAthleteStatsUseCase } from '../../application/use-cases/athletes/get-athlete-stats.use-case';
+import { UploadAvatarUseCase } from '../../application/use-cases/athletes/upload-avatar.use-case';
 import { PrismaAthleteProfileRepository } from '../../infrastructure/repositories/prisma-athlete-profile.repository';
 import { PrismaUserRepository } from '../../infrastructure/repositories/prisma-user.repository';
 import { PrismaPerformanceLogRepository } from '../../infrastructure/repositories/prisma-performance-log.repository';
@@ -15,6 +16,7 @@ const getProfileUseCase = new GetProfileUseCase(profileRepo);
 const createProfileUseCase = new CreateProfileUseCase(profileRepo);
 const generatePlanUseCase = new GeneratePlanUseCase(userRepo, profileRepo);
 const getAthleteStatsUseCase = new GetAthleteStatsUseCase(logRepo);
+const uploadAvatarUseCase = new UploadAvatarUseCase(userRepo);
 
 export function getProfile(req: Request, res: Response, next: NextFunction): void {
   const userId = req.user!.id;
@@ -42,5 +44,17 @@ export function getAthleteStats(req: Request, res: Response, next: NextFunction)
   const userId = req.user!.id;
   getAthleteStatsUseCase.execute(userId)
     .then((result) => res.status(200).json({ data: result }))
+    .catch(next);
+}
+
+export function uploadAvatar(req: Request, res: Response, next: NextFunction): void {
+  const userId = req.user!.id;
+  const file = (req as { file?: Express.Multer.File }).file;
+  if (!file) {
+    res.status(400).json({ error: true, message: 'No se envió ninguna imagen', statusCode: 400 });
+    return;
+  }
+  uploadAvatarUseCase.execute(userId, file.filename)
+    .then((avatarUrl) => res.status(200).json({ data: { avatarUrl } }))
     .catch(next);
 }

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import path from 'path';
 import { env } from '../infrastructure/config/env';
 import { logger } from '../infrastructure/logger/logger';
 import { prisma } from '../infrastructure/database/prisma';
@@ -10,8 +11,10 @@ import { errorHandler } from './middlewares/error-handler.middleware';
 const app = express();
 
 app.use(cors());
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(express.json());
+
+app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
 app.get('/api/v1/health', (_req, res) => {
   res.json({ data: { status: 'ok', timestamp: new Date().toISOString() } });

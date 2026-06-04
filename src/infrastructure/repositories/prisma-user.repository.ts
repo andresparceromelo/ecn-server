@@ -24,6 +24,7 @@ export class PrismaUserRepository implements UserRepository {
         email: user.email,
         password: user.password,
         role: user.role as unknown as PrismaUserModel['role'],
+        avatarUrl: user.avatarUrl,
       },
     });
     return this.toDomain(created);
@@ -41,6 +42,14 @@ export class PrismaUserRepository implements UserRepository {
     return result.map((r) => ({ role: r.role as unknown as string, count: r._count.id }));
   }
 
+  async updateAvatar(userId: string, avatarUrl: string): Promise<User> {
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl },
+    });
+    return this.toDomain(updated);
+  }
+
   private toDomain(user: PrismaUserModel): User {
     return new User(
       user.id,
@@ -50,6 +59,7 @@ export class PrismaUserRepository implements UserRepository {
       user.role as unknown as UserRole,
       user.createdAt,
       user.updatedAt,
+      user.avatarUrl,
     );
   }
 }
