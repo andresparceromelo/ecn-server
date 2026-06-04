@@ -1,0 +1,392 @@
+{
+  "info": {
+    "name": "ECN Server API",
+    "description": "## 🎯 Sustentación ECN - Backend API\n\nColección completa para probar todos los endpoints.\n\n### ⚡ Setup rápido\n1. Crea variable `baseUrl` en Postman (Collection Variables o Environment):\n   - Local: `http://localhost:3000/api/v1`\n   - Producción: `https://ecn-server.onrender.com/api/v1`\n2. Ejecuta **Login Admin** primero → el token se auto-guarda\n3. Los requests con 🔒 requieren token (se auto-inyecta)\n\n### 📋 Flujo de prueba recomendado\n```\nHealth → Register → Login Athlete → Get Profile → Create Profile → Create Log → List Logs → Generate Plan → Login Admin → Admin Dashboard\n```",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🏥 Health",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Body has data.status', () => pm.expect(pm.response.json().data.status).to.eql('ok'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "📝 Auth - Register",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+              "pm.test('Returns token and user', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.data.token).to.not.be.empty;",
+              "  pm.expect(body.data.user.role).to.eql('ATHLETE');",
+              "});",
+              "pm.collectionVariables.set('authToken', pm.response.json().data.token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Atleta Demo\",\n  \"email\": \"demo@test.com\",\n  \"password\": \"demo1234\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/register"
+      }
+    },
+    {
+      "name": "🔑 Auth - Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('Returns valid JWT', () => {",
+              "  const token = pm.response.json().data.token;",
+              "  pm.expect(token.split('.')).to.have.length(3);",
+              "});",
+              "pm.collectionVariables.set('authToken', pm.response.json().data.token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"demo@test.com\",\n  \"password\": \"demo1234\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/login"
+      }
+    },
+    {
+      "name": "🔑 Auth - Login Admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('Role is ADMIN', () => pm.expect(pm.response.json().data.user.role).to.eql('ADMIN'));",
+              "pm.collectionVariables.set('authToken', pm.response.json().data.token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"abedoya923@soyudemedellin.edu.co\",\n  \"password\": \"admin123\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/login"
+      }
+    },
+    {
+      "name": "🔒 Athlete - Get Profile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json().data;",
+              "pm.expect(body).to.have.property('hasProfile');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+        ],
+        "url": "{{baseUrl}}/athletes/profile"
+      }
+    },
+    {
+      "name": "🔒 Athlete - Create Profile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+              "pm.test('Profile has level calculated', () => {",
+              "  const body = pm.response.json().data;",
+              "  pm.expect(body.hasProfile).to.eql(true);",
+              "  pm.expect(['BEGINNER','INTERMEDIATE','ADVANCED','ELITE']).to.include(body.level);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"height\": 1.75,\n  \"weight\": 78.5,\n  \"squat1RM\": 120,\n  \"press1RM\": 65,\n  \"deadlift1RM\": 140,\n  \"experienceMonths\": 6\n}"
+        },
+        "url": "{{baseUrl}}/athletes/profile"
+      }
+    },
+    {
+      "name": "🔒 Logs - Create Log",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+              "pm.test('Log has correct discipline', () => {",
+              "  const body = pm.response.json().data;",
+              "  pm.expect(body.discipline).to.eql('WEIGHTLIFTING');",
+              "});",
+              "pm.collectionVariables.set('logId', pm.response.json().data.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"discipline\": \"WEIGHTLIFTING\",\n  \"exerciseName\": \"Sentadilla\",\n  \"metricValue\": 120,\n  \"reps\": 8,\n  \"loggedAt\": \"2026-06-04T12:00:00.000Z\"\n}"
+        },
+        "url": "{{baseUrl}}/logs"
+      }
+    },
+    {
+      "name": "🔒 Logs - List Logs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has pagination meta', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property('data');",
+              "  pm.expect(body.meta).to.have.all.keys('total','page','limit','totalPages');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/logs?page=1&limit=10&discipline=WEIGHTLIFTING",
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "10" },
+            { "key": "discipline", "value": "WEIGHTLIFTING" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "🔒 Logs - Update Log",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Metric value updated', () => {",
+              "  const body = pm.response.json().data;",
+              "  pm.expect(body.metricValue).to.eql(130);",
+              "  pm.expect(body.reps).to.eql(6);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"metricValue\": 130,\n  \"reps\": 6\n}"
+        },
+        "url": "{{baseUrl}}/logs/{{logId}}"
+      }
+    },
+    {
+      "name": "🔒 Logs - Delete Log",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+        ],
+        "url": "{{baseUrl}}/logs/{{logId}}"
+      }
+    },
+    {
+      "name": "🛡️ Admin - Dashboard (Admin Token)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has dashboard metrics', () => {",
+              "  const body = pm.response.json().data;",
+              "  pm.expect(body).to.have.all.keys('totalAthletes','totalLogs','logsThisWeek','averageLogsPerAthlete');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+        ],
+        "url": "{{baseUrl}}/admin/dashboard"
+      }
+    },
+    {
+      "name": "🚫 Admin - Dashboard (Forbidden Athlete)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 403 Forbidden', () => pm.response.to.have.status(403));",
+              "pm.test('Error message in Spanish', () => {",
+              "  pm.expect(pm.response.json().message).to.include('No tienes permisos');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+        ],
+        "url": "{{baseUrl}}/admin/dashboard"
+      }
+    },
+    {
+      "name": "⚠️ Error - Validation (invalid discipline)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error in Spanish', () => pm.expect(pm.response.json().message).to.include('disciplina'));",
+              "pm.test('No stack trace exposed', () => pm.expect(pm.response.json()).to.not.have.property('stack'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"discipline\": \"INVALID\",\n  \"exerciseName\": \"Test\",\n  \"metricValue\": 100,\n  \"reps\": 5,\n  \"loggedAt\": \"2026-06-04T12:00:00.000Z\"\n}"
+        },
+        "url": "{{baseUrl}}/logs"
+      }
+    },
+    {
+      "name": "⚠️ Error - 401 No Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 401', () => pm.response.to.have.status(401));",
+              "pm.test('Error says token missing', () => pm.expect(pm.response.json().message).to.include('Token'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/athletes/profile"
+      }
+    },
+    {
+      "name": "⚠️ Error - 404 Not Found",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 404', () => pm.response.to.have.status(404));",
+              "pm.test('Format matches spec', () => {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.all.keys('error','message','statusCode');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/nonexistent"
+      }
+    }
+  ]
+}

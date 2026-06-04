@@ -1,0 +1,29 @@
+databases:
+  - name: ecn-db
+    plan: free
+    region: ohio
+    databaseName: ecn
+    ipAllowList: []
+
+services:
+  - type: web
+    name: ecn-server
+    env: node
+    region: ohio
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ecn-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 24h
+      - key: BCRYPT_SALT_ROUNDS
+        value: 10

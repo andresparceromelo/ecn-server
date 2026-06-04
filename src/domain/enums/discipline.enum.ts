@@ -1,0 +1,6 @@
+export enum Discipline {
+  WEIGHTLIFTING = 'WEIGHTLIFTING',
+  RUNNING = 'RUNNING',
+  SWIMMING = 'SWIMMING',
+  CYCLING = 'CYCLING',
+}

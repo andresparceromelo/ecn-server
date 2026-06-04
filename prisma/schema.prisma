@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ATHLETE
+  ADMIN
+
+  @@map("user_role")
+}
+
+enum AthleteLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ELITE
+
+  @@map("athlete_level")
+}
+
+enum Discipline {
+  WEIGHTLIFTING
+  RUNNING
+  SWIMMING
+  CYCLING
+
+  @@map("discipline")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.Text
+  email     String   @unique @db.Text
+  password  String   @db.Text
+  role      UserRole @default(ATHLETE)
+
+  athleteProfile AthleteProfile?
+  performanceLogs PerformanceLog[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("users")
+}
+
+model AthleteProfile {
+  id               String       @id @default(uuid()) @db.Uuid
+  userId           String       @unique @map("user_id") @db.Uuid
+  level            AthleteLevel @default(BEGINNER)
+  experienceMonths Int          @map("experience_months") @db.Integer
+  height           Decimal      @db.Decimal(5, 2)
+  weight           Decimal      @db.Decimal(5, 2)
+  bodyFat          Decimal      @map("body_fat") @db.Decimal(4, 2)
+  ffmi             Decimal      @db.Decimal(4, 2)
+  swr              Decimal      @db.Decimal(4, 2)
+  squat1RM         Decimal      @map("squat_1rm") @db.Decimal(6, 2)
+  press1RM         Decimal      @map("press_1rm") @db.Decimal(6, 2)
+  deadlift1RM      Decimal      @map("deadlift_1rm") @db.Decimal(6, 2)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("athlete_profiles")
+}
+
+model PerformanceLog {
+  id            String     @id @default(uuid()) @db.Uuid
+  athleteId     String     @map("athlete_id") @db.Uuid
+  discipline    Discipline
+  exerciseName  String     @map("exercise_name") @db.Text
+  metricValue   Decimal    @map("metric_value") @db.Decimal(8, 2)
+  reps          Int
+  loggedAt      DateTime   @map("logged_at") @db.Timestamptz
+
+  athlete User @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("performance_logs")
+}
