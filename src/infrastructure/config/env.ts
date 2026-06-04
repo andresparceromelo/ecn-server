@@ -19,7 +19,7 @@ if (!parsed.success) {
   for (const issue of parsed.error.issues) {
     process.stderr.write(`  - ${issue.path.join('.')}: ${issue.message}\n`);
   }
-  process.exit(1);
+  throw new Error('Variables de entorno inválidas');
 }
 
 export const env = parsed.data;
